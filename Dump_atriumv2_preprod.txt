@@ -1,0 +1,35 @@
+shutdown immediate;
+startup mount pfile='/users/ora00/pfile/initUNM.ora';
+alter database noarchivelog;
+shutdown immediate;
+startup pfile='/users/ora00/pfile/initUNM.ora';
+archive log list;
+drop user E5_DATABASE cascade;
+/users/unm00/exploit/script/start /users/unm00/exploit/script/unm_1drw.sh >> /users/unm00/log/`date "+"\%"d"\%"munm_1drw.log"` 2>&1
+nohup /users/unm00/exploit/script/start /users/unm00/exploit/script/unm_1pe2.sh >> /users/unm00/log/`date "+"\%"d"\%"munm_1pe2.log"` 2>&1 &
+shutdown immediate;
+startup mount pfile='/users/ora00/pfile/initUNM.ora';
+Alter database archivelog;
+shutdown immediate;
+startup pfile='/users/ora00/pfile/initUNM.ora';
+
+
+
+cd /users99/unm00/fichiers_import/imp_prod
+ls -l export_full.dmp | awk '{print $6 $7}'
+
+date +%Y%m%d -d "1 days ago"
+
+sqlplus -s "/ as sysdba" <<EOFDBA
+
+ Select * from dual;
+ exit
+EOFDBA
+
+/users/unm00/exploit/script/start /users/unm00/exploit/script/unm_1drw.sh >> /users/unm00/log/`date "+"\%"d"\%"munm_1drw.log"` 2>&1
+nohup /users/unm00/exploit/script/start /users/unm00/exploit/script/unm_1pe2.sh >> /users/unm00/log/`date "+"\%"d"\%"munm_1pe2.log"` 2>&1 &
+
+
+
+
+date +%b%d -d "1 days ago"

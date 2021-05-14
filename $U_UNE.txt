@@ -1,0 +1,58 @@
+UNIX:
+
+$TBMEXSCRIPT/start $TBMPERLEXE $TBMEXSCRIPT/tbm_0use.pl -reference une /users99/une00/ 
+$TBMEXSCRIPT/start $TBMPERLEXE $TBMEXSCRIPT/tbm_0usi.pl -reference une /users99/une00/ 20200326145059
+ 
+. /users/tbm00/exploit/script/start 
+. /users/universe/fileso/rachel/profile
+. /soft/universe/fileso/profile
+
+$TBMEXSCRIPT/start $TBMPERLEXE $TBMEXSCRIPT/tbm_0use.pl -reference usn /users99/
+$TBMEXSCRIPT/start $TBMPERLEXE $TBMEXSCRIPT/tbm_0usi.pl -reference une /users99/une00/ 20200326145059
+
+call D:\universe\fileso\profile.cmd
+call D:\tbm00\exploit\script\start.cmd
+cd /d %TBMEXSCRIPT%
+perl tbm_0use.pl -reference usn D:\tmp
+
+
+
+$TBMEXSCRIPT/start $TBMPERLEXE $TBMEXSCRIPT/tbm_0use.pl -reference unm /users99/
+
+
+Window:
+
+
+D:\universe\fileso\profile.cmd
+\\sysid\d$\tbm00\exploit\script\start.cmd
+
+D:\tbm00\exploit\script\start.cmd
+
+%TBMEXSCRIPT%\start.cmd %TBMPERLEXE% %TBMEXSCRIPT%\tbm_0use.pl -reference gsa D:\temp
+
+%TBMEXSCRIPT%/start %TBMPERLEXE% %TBMEXSCRIPT%/tbm_0use.pl -reference une D:\tmp
+
+%TBMEXSCRIPT%/start %TBMPERLEXE% %TBMEXSCRIPT/tbm_0usi.pl -reference une D:\tmp 
+
+perl tbm_0use.pl -reference une D:\tmp
+
+perl tbm_0usi.pl -reference une D:\tmp 20190702132352
+
+perl tbm_0usi.pl -reference une D:\tmp 20200327115309
+
+perl tbm_0usi.pl -reference gsa D:\tmp 20201209155219
+
+perl tbm_0use.pl -reference gsa D:\tmp
+
+
+%TBMEXSCRIPT%/start %TBMPERLEXE% %TBMEXSCRIPT%/tbm_0use.pl -reference usn D:\temp
+
+%TBMEXSCRIPT%/start %TBMPERLEXE% %TBMEXSCRIPT%/tbm_0usi.pl -reference usn D:\temp 20210202180849
+
+
+
+perl tbm_0usi.pl -reference us3 D:\tmp 20200819130833
+
+perl tbm_0usi.pl -reference usn D:\tmp 20210202180849
+
+

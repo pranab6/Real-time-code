@@ -1,0 +1,132 @@
+### Import required packages
+import pandas as pd
+import requests
+import requests.auth
+import os
+import datetime
+import shutil
+import numpy as np
+import math
+import argparse
+
+### Defining function to call WebService
+def ge_WS(param1,param2,encodage,user,pwd):
+    url = 'http://cesare.preprod.inetpsa.com/advitium/WebServicesCesare/CesarePLMInterfaceGetEcuOrArticleWS.asmx?wsdl'
+
+    rqt = """<?xml version="1.0" encoding='"""+encodage+"""'?>
+           <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ces="http://xml.inetpsa.com/Services/cesare/CesarePLMInterfaceWS">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <ces:GetCompleteEcuListFromEPCInput>
+         <!--Optional:-->
+         <ces:businessReference>"""+param1+"""</ces:businessReference>
+         <!--Optional:-->
+         <ces:epcVersion>"""+param2+"""</ces:epcVersion>
+      </ces:GetCompleteEcuListFromEPCInput>
+   </soapenv:Body>
+</soapenv:Envelope>"""
+    headers = {'content-type': 'text/xml; charset=utf-8'}
+
+    response = requests.post(url,data=rqt.encode('utf-8'), auth=(user,pwd), headers=headers)
+    if response.status_code != 200:
+        if response.status_code == 404:
+            print("error to call webservice for {}_{} at {:%Y-%m-%d %H:%M:%S}".format(param1,param2,datetime.datetime.now()))
+            return "Failed"
+        else:
+            print("Bad request for =>{}_{} at {:%Y-%m-%d %H:%M:%S}".format(param1,param2,datetime.datetime.now()))
+            Exception("Bad request, code error =>  "+ str(response.status_code))
+            return "Failed"
+    else: 
+        print("Call performed properly for {} at {:%Y-%m-%d %H:%M:%S}".format(param1,datetime.datetime.now()))
+    return response
+
+# Process to fetch the argument from Shell
+parser = argparse.ArgumentParser()
+
+# Value of user for webservice 
+parser.add_argument("user")
+# Value of password for webservice
+parser.add_argument("password")
+# Path to input file containing CEP and Version
+parser.add_argument("input_file")
+# Path to output CEP when it is found 
+parser.add_argument("output_folder_found")
+# Path to output CEP when it is unknown
+parser.add_argument("output_folder_unknown")
+# Path to output logs 
+parser.add_argument("output_folder_logs")
+
+args = parser.parse_args()
+
+### Get the path and import data 
+input_path = args.input_file
+data = pd.read_csv(input_path,sep='|', header=None)
+data = data.drop(2, axis=1)
+
+# Define chunk 
+#n = 3881
+#list_df = [data[i:i+n] for i in range(0,data.shape[0],n)]
+#[i.shape for i in list_df]
+# Get the first Chunk
+#data = list_df[0]
+# Select column 0 and 1 
+#data= data[[0,1]]
+
+# Getting variable for path output user and pwd
+user = args.user
+pwd = args.password
+path_xml_response = args.output_folder_found
+path_xml_response_unknow = args.output_folder_unknown
+path_xml_logs = args.output_folder_logs
+# Open log file and append logs in it
+L = open(path_xml_logs,"a")
+#Iterate on each record of dataframe
+for i in range(len(data)):
+    param1 = str(data[0][i])
+    param2 = str(data[1][i])
+    param1 = param1.replace('&','&amp;')
+    print("start processing for {}_{} at {:%Y-%m-%d %H:%M:%S}".format(param1,param2,datetime.datetime.now()))
+    L.write('"'+param1+'"|"'+param2+'"|')
+    ts_start = str(datetime.datetime.now())
+    # Call of Webservice
+    response = ge_WS(param1,param2,'UTF-8',user,pwd)
+    # Write the ending response process with TS in logs
+    if response =="Failed": 
+        L.write('"Failed processing"|"'+ts_start +'"|"'+str(datetime.datetime.now())+'"|"Failed"|'+'/n')
+    else: 
+        try:
+            if b'CEP_UNKNOWN' in response.content :
+                DES = path_xml_response_unknow+"/"+param1.replace("/","%").replace('*','_')+"_"+param2.replace("/","%")+".xml"
+                f = open(DES, mode="w",encoding="UTF-8")
+                f.write(response.content.decode('utf-8').replace('CEP_UNKNOWN','CEP_UNKNOWN<param1>'+param1+'</param1><param2>'+param2+'</param2>')\
+                        .replace('<?xml version="1.0" encoding="utf-8"?><soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"><soap:Body><GetCompleteEcuListFromEPCOutput xmlns="http://xml.inetpsa.com/Services/cesare/CesarePLMInterfaceWS">','')\
+                        .replace('<GetCompleteEcuListFromEPCResponse>0</GetCompleteEcuListFromEPCResponse>','')\
+                        .replace('</soap:Body></soap:Envelope>',''))
+                f.close()
+                L.write('"<GetCompleteEcuListFromEPCResponse>CEP_UNKNOWN</GetCompleteEcuListFromEPCResponse>"'+'|"'+ts_start+'"|"'+str(datetime.datetime.now())+'"|"UNKNWOWN"|'+'\n')
+            else :
+                DES = path_xml_response+"/"+param1.replace("/","%").replace('*','_')+"_"+param2.replace("/","%")+".xml"
+                f = open(DES, mode="w",encoding="UTF-8")
+                f.write(response.content.decode('utf-8').replace('<GsaEcu xmlns="http://xml.inetpsa.com/ProduitProcess/Electronique">','<GsaEcu><param1>'+param1+'</param1><param2>'+param2+'</param2>')\
+                       .replace('<?xml version="1.0" encoding="utf-8"?><soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"><soap:Body><GetCompleteEcuListFromEPCOutput xmlns="http://xml.inetpsa.com/Services/cesare/CesarePLMInterfaceWS">','')\
+                       .replace('</soap:Body></soap:Envelope>','')\
+                       .replace('<GetCompleteEcuListFromEPCResponse>0</GetCompleteEcuListFromEPCResponse>','<GetCompleteEcuListFromEPCOutput>'))
+                L.write('"<GetCompleteEcuListFromEPCResponse>CEP_OK</GetCompleteEcuListFromEPCResponse>"'+'|"'+ts_start+'"|"'+str(datetime.datetime.now())+'"|"OK"|'+'\n')
+                f.close()
+        except UnicodeDecodeError:
+            if b'CEP_UNKNOWN' in response.content :
+                DES = path_xml_response_unknow+"/"+param1.replace("/","%").replace('*','_')+"_"+param2.replace("/","%")+".xml"
+                f = open(DES, mode="w",encoding="UTF-8")
+                f.write(response.content.decode('utf-8').replace('CEP_UNKNOWN','CEP_UNKNOWN<param1>'+param1+'</param1><param2>'+param2+'</param2>'))
+                f.close()
+                print("processing done for "+ param1 +"_"+param2)
+                print("CEP "+ param1 +"_"+param2+" UNKNOWN")
+                L.write("processing done and data UNKNOWN for "+ param1 +"_"+param2+' at '+str(datetime.datetime.now())+'\n')
+            else :
+                DES = path_xml_response+"/"+param1.replace("/","%").replace('*','_')+"_"+param2.replace("/","%")+".xml"
+                f = open(DES, mode="w",encoding="UTF-8")
+                f.write(response.content.decode('utf-8').replace('<GsaEcu xmlns="http://xml.inetpsa.com/ProduitProcess/Electronique">','<GsaEcu><param1>'+param1.encode('utf-8')+'</param1><param2>'+param2.encode('utf-8')+'</param2>'))
+                f.close()
+                print("processing done for "+ param1+"_"+param2)
+                L.write("processing done and data found for "+ param1 +"_"+param2+' at '+str(datetime.datetime.now())+'\n')
+L.close()

@@ -1,0 +1,197 @@
+SYS                                                                                        DUMP_PROD
+/users99/unm00/fichiers_import/imp_prod
+
+SYS                                                                                        UNXSAVDAT
+/users99/unm00/saveindus/savedat
+
+SYS                                                                                        EXPLOIT_DUMP_DIR
+/users99/unm00/saveindus/savedat
+
+SYS                                                                                        DATA_PUMP_DIR
+/soft/ora1120/db/rdbms/log/
+
+SYS                                                                                        ORACLE_OCM_CONFIG_DIR
+/soft/ora1120/db/ccr/state
+
+
+expdp schemas=E5_DATABASE  ESTIMATE_ONLY=y
+
+nohup expdp system/JN995505 DIRECTORY=DUMP_PROD schemas=E5_DATABASE dumpfile=export_full.dmp LOGFILE=export_E5_DATABASE.log FULL=No PARALLEL=8 &
+
+
+nohup expdp system/JN995505 DIRECTORY=DUMP_PROD schemas=E5_DATABASE dumpfile=export_full_%U.dmp  LOGFILE=export_E5_DATABASE.log FULL=No PARALLEL=8 filesize=30GB &
+
+
+nohup impdp system/JN995505 DIRECTORY=DUMP_PROD schemas=E5_DATABASE dumpfile=export_full_%U.dmp  LOGFILE=export_E5_DATABASE.log FULL=No PARALLEL=8 &
+
+TAM : mzpunm01/rodni1kk
+
+SQL> ARCHIVE LOG LIST;
+Database log mode              Archive Mode
+Automatic archival             Enabled
+Archive destination            /users69/usn00/base/arc
+Oldest online log sequence     2071
+Next log sequence to archive   2073
+Current log sequence           2073
+
+
+startup mount pfile='/users/ora00/pfile/initUNM.ora';
+
+alter database noarchivelog;
+
+SQL> ARCHIVE LOG LIST;
+Database log mode              No Archive Mode
+Automatic archival             Disabled
+Archive destination            /users69/usn00/base/arc
+Oldest online log sequence     2071
+Current log sequence           2073
+SQL>
+
+SQL> shutdown immediate;
+Database closed.
+Database dismounted.
+ORACLE instance shut down.
+SQL>
+
+startup pfile='/users/ora00/pfile/initUNM.ora';
+
+SQL> ARCHIVE LOG LIST;
+Database log mode              No Archive Mode
+Automatic archival             Disabled
+Archive destination            /users69/usn00/base/arc
+Oldest online log sequence     2071
+Current log sequence           2073
+SQL>
+
+drop user E5_DATABASE cascade;
+
+Alter database archivelog;
+
+nohup impdp system/JN995505 DIRECTORY=DUMP_PROD schemas=E5_DATABASE dumpfile=export_full.dmp LOGFILE=export_E5_DATABASE.log FULL=No PARALLEL=8 &
+
+
+scp "export_full.dmp" mzpunm01@YVAS0VP0:/users99/unm00/fichiers_import/imp_prod
+
+scp "export_full.dmp" mzpunm01@YVAS0VP0:/users99/unm00/saveindus/savedat
+
+rsync -avz imp_prod/ mwpunm01@yvasg860:/users99/unm00/fichiers_import/imp_prod
+
+cd /users99/unm00/saveindus
+rsync -avz savedat/ mwpunm01@yvasg860:/users99/unm00/saveindus/savedat
+
+
+YVAS0VP0---New db/ccr/state
+
+
+nohup impdp system/JN995505 DIRECTORY=UNXSAVDAT schemas=E5_DATABASE dumpfile=export_full_%U.dmp  LOGFILE=import_E5_DATABASE.log FULL=No PARALLEL=8 & 
+
+nohup impdp system/JN995505 DIRECTORY=UNXSAVDAT schemas=E5_DATABASE dumpfile=export_full.dmp  LOGFILE=import_E5_DATABASE.log FULL=No PARALLEL=8 &
+
+
+-------------------------------------------------------------------------------------------------------------------
+SYS                            UNXSAVDAT
+/users99/unm00/saveindus/savedat
+
+SYS                            XMLDIR
+/soft/ora1120/db/rdbms/xml
+
+SYS                            EXPLOIT_DUMP_DIR
+/users99/unm00/saveindus/savedat
+
+SYS                            ORACLE_OCM_CONFIG_DIR
+/soft/ora1120/db/ccr/hosts/yvas0vp0/state
+
+SYS                            DATA_PUMP_DIR
+/soft/ora1120/db/rdbms/log/
+
+SYS                            ORACLE_OCM_CONFIG_DIR2
+/soft/ora1120/db/ccr/state
+
+
+
+
+%CFTEXSCRIPT%\cft_0md.pl --send  G:\cft00\envoi\DGP.txt PYDUNM04 GA01TCP
+
+%CFTEXSCRIPT%\cft_0md.pl --send  G:\cft00\envoi\NFC.txt PYDUNM03 BE01TCP
+
+
+nohup impdp system/system DIRECTORY=DUMP_PROD schemas=E5_DATABASE dumpfile=export_full.dmp  LOGFILE=import_E5_DATABASE.log FULL=No PARALLEL=8 &
+
+
+
+
+
+
+
+
+
+
+
+
+Connected to: Oracle Database 11g Enterprise Edition Release 11.2.0.4.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+Starting "TBO"."EXPDP_TBO06": tbo/******** DIRECTORY=UNXSAVDAT DUMPFILE=export_full.dmp FLASHBACK_TIME="TO_TIMESTAMP (TO_CHAR (SYSDATE, 'YYYY-MM-DD HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS')" FULL=Y JOB_NAME=EXPDP_TBO06 LOGFILE=3006_23h47m__UNM_expdp_full.log PARALLEL=1
+Estimate
+
+
+tbo/******** DIRECTORY=UNXSAVDAT DUMPFILE=export_full.dmp 
+FLASHBACK_TIME="TO_TIMESTAMP (TO_CHAR (SYSDATE, 'YYYY-MM-DD HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS')" 
+FULL=Y JOB_NAME=EXPDP_TBO06 LOGFILE=3006_23h47m__UNM_expdp_full.log PARALLEL=1
+
+
+
+Master table "TBO"."EXPDP_TBO06" successfully loaded/unloaded
+******************************************************************************
+Dump file set for TBO.EXPDP_TBO06 is:
+  /users99/unm00/saveindus/savedat/export_full.dmp
+Job "TBO"."EXPDP_TBO06" successfully completed at Wed Jul 1 00:17:48 2020 elapsed 0 00:29:58
+
+
+
+
+
+$GIKEXE gik_ora_exp.pl --BACKUP_TYPE=EXPDP
+
+/users/prz00/exploit/script/start /soft/perl-5.16.3/bin/perl /users/prz00/gik00/ora12/script/gik_ora_exp.pl --BACKUP_TYPE=EXPDP_FULL --ACTIVESDI=0
+
+
+EXPDP:dbadm:expdp::-a PRZ
+EXPDP_FULL:dbadm:expdp_full::-a PRZ
+
+
+
+
+
+<job name="GIK_DB_EXPORT_FULL">
+        <step>
+            <number>1</number>
+            <description>save FULL database</description>
+            <bdmjob>prz_000_</bdmjob>
+            <active_titresdi>1</active_titresdi>
+            <script>${GIKEXE} ${GIKDBCMDEXP} --BACKUP_TYPE="EXPDP_FULL" --ACTIVESDI=0</script>
+            <exit returncode="gt0">
+                <codemessg>0000</codemessg>
+                <argument id="1">
+                    <exe>echo "JOB:GIK_DB_EXPORT_FULL=KO"</exe>
+                </argument>
+            </exit>
+        </step>
+        <flag>
+            <activate>1</activate>
+        </flag>
+    </job>
+
+/users/prz00/exploit/script/start /soft/perl-5.16.3/bin/perl /users/prz00/exploit/script/gik_cmn_lnc.pl --FICONF="$UNXEXDATA/gik_cmn_lnc_ora.xml" --JOB="GIK_DB_EXPORT_FULL"
+
+tbo_0gen.sh -k EXPDP_FULL
+
+
+/users/tbo06/exploit/script/start tbo_0gen.sh -t UNE -m dbadm -o expdp_full -a -a UNE
+
+
+
+
+
+
+
+
